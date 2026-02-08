@@ -182,7 +182,10 @@ jobs:
             6. **DO NOT** push if verification fails
             7. **DO NOT** resolve conflicts you don't understand
 
-          claude_args: "--model ${{ vars.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929' }} --max-turns 999 --allowedTools Read,Write,Edit,Bash(*)"
+          claude_args: |
+            --model ${{ vars.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929' }}
+            --max-turns 999
+            --allowedTools Read,Write,Edit,Bash(*)
           use_commit_signing: false
 
   auto-fix:
@@ -489,5 +492,8 @@ jobs:
             | Bulk auto-fix without review | May introduce bugs | Review each change |
             | Fixing errors you don't understand | May cause regressions | Document and skip |
 
-          claude_args: "--model ${{ vars.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929' }} --max-turns 999 --allowedTools Read,Write,Edit,Bash(*)"
+          claude_args: |
+            --model ${{ vars.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929' }}
+            --max-turns 999
+            --allowedTools Read,Write,Edit,Bash(*)
           use_commit_signing: false
