@@ -175,6 +175,8 @@ WhaleWhisper/
 
 我们欢迎所有形式的贡献！无论是报告问题、提出建议还是提交代码。
 
+在开始之前，请先阅读 [贡献指南（CONTRIBUTING.md）](CONTRIBUTING.md)，了解分支规范、提交规范和 PR 流程。
+
 ### 如何贡献
 
 1. **报告问题**：在 [Issues](https://github.com/datawhalechina/WhaleWhisper/issues) 中描述问题、复现步骤和日志
