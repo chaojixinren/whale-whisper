@@ -1,7 +1,7 @@
 name: PR Checks
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [main, dev]
     types: [opened, synchronize, reopened, ready_for_review]
 
@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -39,6 +41,8 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -54,3 +58,38 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build web app
         run: pnpm --filter @whalewhisper/web build
+
+  report-status:
+    needs: [backend, frontend]
+    if: always() && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+    steps:
+      - name: Report check status to PR head SHA
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.payload.pull_request.head.sha;
+            const backendResult = '${{ needs.backend.result }}';
+            const frontendResult = '${{ needs.frontend.result }}';
+
+            const checks = [
+              { context: 'PR Checks / backend', result: backendResult },
+              { context: 'PR Checks / frontend', result: frontendResult },
+            ];
+
+            for (const check of checks) {
+              const state = check.result === 'success' ? 'success'
+                          : check.result === 'skipped' ? 'success'
+                          : 'failure';
+              await github.rest.repos.createCommitStatus({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha,
+                state,
+                context: check.context,
+                description: `${check.result} (via pull_request_target)`,
+                target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              });
+            }
