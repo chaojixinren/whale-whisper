@@ -20,6 +20,7 @@ target/
 # Local data
 /data/
 backend/data/
+/cankao/
 
 # IDE
 .vscode/
