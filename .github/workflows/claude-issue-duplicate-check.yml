@@ -80,5 +80,5 @@ jobs:
           github_token: ${{ github.token }}
           allowed_non_write_users: "*"
           prompt: ${{ steps.prompt.outputs.prompt }}
-          claude_args: "--max-turns 30 --allowedTools Bash(*)"
+          claude_args: "--model ${{ vars.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929' }} --max-turns 30 --allowedTools Bash(*)"
           use_commit_signing: false

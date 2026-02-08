@@ -191,5 +191,5 @@ jobs:
             - Description is comprehensive (> 300 chars with clear sections and links)
             - PR is from a bot
 
-          claude_args: "--max-turns 999 --allowedTools Read,Bash(*),Grep,Glob"
+          claude_args: "--model ${{ vars.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929' }} --max-turns 999 --allowedTools Read,Bash(*),Grep,Glob"
           use_commit_signing: false

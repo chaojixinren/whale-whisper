@@ -232,5 +232,5 @@ jobs:
             *Automated review by Claude AI*
             ```
 
-          claude_args: "--max-turns 999 --allowedTools Read,Grep,Glob,Bash(*)"
+          claude_args: "--model ${{ vars.CLAUDE_MODEL || 'claude-sonnet-4-5-20250929' }} --max-turns 999 --allowedTools Read,Grep,Glob,Bash(*)"
           use_commit_signing: false
