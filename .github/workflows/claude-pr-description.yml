@@ -16,9 +16,17 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: Validate Anthropic configuration
+        run: |
+          if [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "::error::Missing required secret ANTHROPIC_API_KEY (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
       - name: Run Claude Code for PR Description Enhancement
