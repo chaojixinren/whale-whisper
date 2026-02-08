@@ -204,15 +204,57 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.workflow_run.head_branch }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
       - name: Fetch failed logs
         id: failed_logs
         env:
           GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          gh run view ${{ github.event.workflow_run.id }} --log-failed > failed.log 2>/dev/null || echo "Failed to fetch logs" > failed.log
+          set -euo pipefail
+
+          run_id="${{ github.event.workflow_run.id }}"
+          run_url="${{ github.event.workflow_run.html_url }}"
+
+          if [ -z "$run_id" ]; then
+            echo "::error::Missing workflow_run.id; this job only supports workflow_run triggers."
+            exit 1
+          fi
+
+          echo "Fetching failed logs for run $run_id ($run_url)"
+
+          tmp_err="$(mktemp)"
+          if gh run view "$run_id" --repo "$GH_REPO" --log-failed > failed.log 2>"$tmp_err"; then
+            if [ ! -s failed.log ]; then
+              echo "::error::Fetched logs are empty (run $run_id)."
+              {
+                echo "ERROR: fetched logs are empty."
+                echo "Run URL: $run_url"
+              } > failed.log
+              exit 1
+            fi
+          else
+            echo "::error::Failed to fetch logs for run $run_id."
+            {
+              echo "ERROR: failed to fetch logs for run $run_id."
+              echo "Run URL: $run_url"
+              echo ""
+              echo "--- gh stderr ---"
+              cat "$tmp_err"
+            } > failed.log
+            {
+              echo "### Claude CI Auto-Fix"
+              echo ""
+              echo "Failed to fetch logs for run $run_id."
+              echo ""
+              echo "- Run: $run_url"
+              echo "- Details captured in \`failed.log\` (runner workspace)"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
           echo "log_path=failed.log" >> "$GITHUB_OUTPUT"
 
       - name: Get CI failure details
@@ -243,7 +285,8 @@ jobs:
               failedJobs: failedJobs.map(j => j.name),
               hasPR: hasPR,
               prNumber: hasPR ? pullRequests[0].number : null,
-              headBranch: '${{ github.event.workflow_run.head_branch }}'
+              headBranch: '${{ github.event.workflow_run.head_branch }}',
+              headSha: '${{ github.event.workflow_run.head_sha }}'
             };
 
       - name: Run Claude Code for Auto-Fix
@@ -266,6 +309,7 @@ jobs:
             - **Workflow**: ${{ fromJSON(steps.failure_details.outputs.result).workflowName }}
             - **Failed Run**: ${{ fromJSON(steps.failure_details.outputs.result).runUrl }}
             - **Branch**: ${{ fromJSON(steps.failure_details.outputs.result).headBranch }}
+            - **SHA (pinned)**: ${{ fromJSON(steps.failure_details.outputs.result).headSha }}
             - **Has PR**: ${{ fromJSON(steps.failure_details.outputs.result).hasPR }}
             - **PR Number**: ${{ fromJSON(steps.failure_details.outputs.result).prNumber }}
             - **Failed Jobs**: ${{ join(fromJSON(steps.failure_details.outputs.result).failedJobs, ', ') }}
