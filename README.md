@@ -209,5 +209,3 @@ WhaleWhisper/
 ## 📄 开源协议
 
 本项目采用 [Apache License 2.0](LICENSE) 进行许可。
-
-这是一行测试
