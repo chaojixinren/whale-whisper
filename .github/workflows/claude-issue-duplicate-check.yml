@@ -62,7 +62,7 @@ jobs:
         shell: bash
         run: |
           {
-            echo "prompt<<'EOF'"
+            echo "prompt<<EOF"
             cat .github/prompts/claude-issue-duplicate-check.md
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
