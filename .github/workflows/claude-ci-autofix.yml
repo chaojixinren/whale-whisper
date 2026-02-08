@@ -254,7 +254,7 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
-
+ 
           echo "log_path=failed.log" >> "$GITHUB_OUTPUT"
 
       - name: Get CI failure details
