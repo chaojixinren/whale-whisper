@@ -23,7 +23,21 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Verify PR branch matches reviewed SHA
+        run: |
+          set -euo pipefail
+          expected="${{ github.event.pull_request.head.sha }}"
+          branch="${{ github.event.pull_request.head.ref }}"
+
+          git fetch origin "$branch"
+          actual="$(git rev-parse FETCH_HEAD)"
+
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::PR branch '$branch' moved since this review was submitted. Expected $expected but remote is $actual."
+            exit 1
+          fi
 
       - name: Run Claude Code for Review Response
         uses: anthropics/claude-code-action@v1
@@ -47,6 +61,7 @@ jobs:
             - **Review State**: ${{ github.event.review.state }}
             - **Review Body**: ${{ github.event.review.body }}
             - **PR Branch**: ${{ github.event.pull_request.head.ref }}
+            - **PR SHA (pinned)**: ${{ github.event.pull_request.head.sha }}
 
             ---
 
@@ -101,8 +116,10 @@ jobs:
             ### Phase 4: Implementation
 
             ```bash
-            git checkout ${{ github.event.pull_request.head.ref }}
-            git pull origin ${{ github.event.pull_request.head.ref }}
+            # IMPORTANT: The workspace is already checked out at the reviewed PR head SHA (pinned).
+            # DO NOT `git pull` or `git checkout` the branch by name.
+            git rev-parse HEAD
+            git switch -c claude-review-responder-${{ github.event.pull_request.number }}-${{ github.run_id }}
             ```
 
             For each change:
@@ -148,7 +165,8 @@ jobs:
 
             Addresses review comments on PR #${{ github.event.pull_request.number }}"
 
-            git push origin ${{ github.event.pull_request.head.ref }}
+            # Push commits back onto the PR branch ref (will fail if the branch advanced).
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
             ```
 
             ### Phase 7: Response

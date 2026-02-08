@@ -52,10 +52,15 @@ jobs:
               });
 
               const prNumber = context.payload.pull_request.number;
-              const matchingRun = runs.data.workflow_runs.find(run =>
-                run.head_sha === context.payload.pull_request.head.sha &&
-                run.pull_requests?.some(pr => pr.number === prNumber)
-              );
+              const prSha = context.payload.pull_request.head.sha;
+              const prBranch = context.payload.pull_request.head.ref;
+
+              const matchingRun = runs.data.workflow_runs.find(run => {
+                if (run.head_sha !== prSha) return false;
+                if (run.head_branch && run.head_branch !== prBranch) return false;
+                if (!Array.isArray(run.pull_requests) || run.pull_requests.length === 0) return true;
+                return run.pull_requests.some(pr => pr.number === prNumber);
+              });
 
               if (matchingRun) {
                 if (matchingRun.status === 'completed') {
