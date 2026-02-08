@@ -36,11 +36,11 @@
   - 自动打 `size/*`、`area/*`、`type/*` 等标签（并确保标签存在）
   - 大 PR 会自动加 `needs-review`
 
-### 4) `Codex PR Description`（`.github/workflows/codex-pr-description.yml`）
+### 4) `Claude PR Description`（`.github/workflows/claude-pr-description.yml`）
 
-- **触发**：每次 PR（opened/synchronize/reopened/ready_for_review）
-- **功能**：在 PR 描述中 upsert 一段 “AI 自动生成的说明”（带 marker，不覆盖你原本内容）
-- **说明**：需要配置 `OPENAI_API_KEY`
+- **触发**：PR 首次打开时（opened）
+- **功能**：用 Claude 分析 PR diff、搜索关联 Issue/PR，自动生成结构化的中文 PR 描述（直接替换 body）；已有完善描述时自动跳过
+- **说明**：需要配置 `ANTHROPIC_API_KEY`（可选 `ANTHROPIC_BASE_URL`）
 
 ### 5) `Codex PR Review`（`.github/workflows/codex-pr-review.yml`）
 
