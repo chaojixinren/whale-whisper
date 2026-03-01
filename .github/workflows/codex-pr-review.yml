@@ -62,6 +62,7 @@ jobs:
           sandbox: read-only
           safety-strategy: drop-sudo
           prompt-file: .github/prompts/codex-pr-review.md
+          allow-users: "*"
 
       - name: Validate Codex output
         shell: bash
