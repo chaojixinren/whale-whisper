@@ -24,3 +24,6 @@ backend/data/
 
 # IDE
 .vscode/
+
+# Environment
+.env
